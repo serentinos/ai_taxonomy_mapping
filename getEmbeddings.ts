@@ -34,7 +34,7 @@ export const getEmbeddingsObject = async (baseTaxonomyPath: string): Promise<emb
     return embeddingsData;
 
   } catch (error) {
-    console.log('Cant find embeddings for current file, regenerating...')
+    console.log('Cant find embeddings for curren csv file, regenerating...')
     const parsedData = await parseCSVFile<ownCategories>(baseTaxonomyPath);
 
     const combinedTexts = parsedData.map(cat => `${cat.productType}||${cat.category}||${cat.subCategory}`);

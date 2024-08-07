@@ -15,12 +15,10 @@ function splitArray(array: any[], chunkSize: number) {
 }
 
 function reconstructArray(chunks: any[]) {
-  return chunks.flat(); // Using flat() to merge the chunks into a single array
+  return chunks.flat(); 
 }
 
 export async function computeEmbeddings(text: string[]) {
-  console.log('input', text)
-
   const splitedInput = splitArray(text, 200);
 
   const results = await Promise.all(splitedInput.map((data) => (
@@ -30,8 +28,10 @@ export async function computeEmbeddings(text: string[]) {
     })
   )));
 
-  const embeddings = results.map(responce => responce.data.map(data => data.embedding));
+  const tokensUsed = results.reduce((sum, result) => sum + result.usage.total_tokens, 0);
 
+  console.log(`Tokens used: ${tokensUsed}`);
+  const embeddings = results.map(responce => responce.data.map(data => data.embedding));
 
   return reconstructArray(embeddings);
 }

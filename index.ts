@@ -55,9 +55,7 @@ async function findBestMatch(parsedEmbedding: number[], ownEmbeddings: number[][
   };
 }
 
-// Function to map parsed objects to own categories based on combined context
 async function mapCategories(parsedObjects: parsedObjects[]) {
-  // Concatenate the fields for own categories and compute embeddings
   const ownEmbeddingsComplete = await getEmbeddingsObject('base_taxonomy/UPC Taxonomy 2.5 - 2.5 Taxonomy (1).csv');
   const ownEmbeddings = ownEmbeddingsComplete.map(({ embeddings }) => embeddings);
   const ownCombined = ownEmbeddingsComplete.map(({ combinedText }) => combinedText);
@@ -73,7 +71,7 @@ async function mapCategories(parsedObjects: parsedObjects[]) {
   return finalObject;
 }
 
-//Example usage
+
 (async () => {
   const targetFile = 'UPC_ Discount School Supply - taxonomy.csv';
   let parsedObjects = await parseCSVFile<parsedObjects>(targetFile);
@@ -119,7 +117,7 @@ async function mapCategories(parsedObjects: parsedObjects[]) {
 
   csvWriter.writeRecords(finalObject)
     .then(() => {
-      console.log('CSV file successfully processed and created.');
+      console.log('CSV file successfully processed and created');
     })
     .catch((error) => {
       console.error('Error writing to CSV file:', error);
