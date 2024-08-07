@@ -1,4 +1,3 @@
 node_modules
-base_taxonomy_embeddings
-base_taxonomy
 *.csv
+base_taxonomy_embeddings/*.json
