@@ -2,6 +2,10 @@ import { parseCSVFile } from "./getCsvFile";
 import { getEmbeddingsObject } from "./getEmbeddings";
 import { computeEmbeddings } from "./computeEmbeddings";
 import { createObjectCsvWriter } from 'csv-writer';
+import minimist from 'minimist';
+import path from "path";
+import fs from 'fs';
+
 
 function extractLinkName(input: string) {
   const hyperlinkPattern = /=HYPERLINK\(".*?",\s*"(.*?)"\)/;
@@ -9,6 +13,22 @@ function extractLinkName(input: string) {
   const match = input.match(hyperlinkPattern);
   
   return match ? match[1] : input;
+}
+
+
+
+// Function to check and create folders
+function checkAndCreateFolders() {
+  const foldersToCheck = ['mapped_taxonomies', 'base_taxonomy_embeddings', 'base_taxonomy'];
+  foldersToCheck.forEach(folder => {
+      const folderPath = path.join(__dirname, folder);
+      if (!fs.existsSync(folderPath)) {
+          fs.mkdirSync(folderPath);
+          console.log(`Created folder: ${folder}`);
+      } else {
+          console.log(`Folder already exists: ${folder}`);
+      }
+  });
 }
 
 interface parsedObjects {
@@ -55,13 +75,15 @@ async function findBestMatch(parsedEmbedding: number[], ownEmbeddings: number[][
   };
 }
 
-async function mapCategories(parsedObjects: parsedObjects[]) {
-  const ownEmbeddingsComplete = await getEmbeddingsObject('base_taxonomy/UPC Taxonomy 2.5 - 2.5 Taxonomy (1).csv');
+async function mapCategories(parsedObjects: parsedObjects[], baseTaxonomyPath: string) {
+  const ownEmbeddingsComplete = await getEmbeddingsObject(baseTaxonomyPath);
   const ownEmbeddings = ownEmbeddingsComplete.map(({ embeddings }) => embeddings);
   const ownCombined = ownEmbeddingsComplete.map(({ combinedText }) => combinedText);
   const finalObject: any = {};
   const readyToParseObjects = parsedObjects.map(({src_pt, src_cat, src_sc}) => (`${src_pt || ' '}||${src_cat || ' '}||${src_sc || ' '}`).trim());
   const parsedEmbeddingObjects = await computeEmbeddings(readyToParseObjects);
+
+  console.log('Calculating best matches...');
 
   readyToParseObjects.forEach(async (parsedCombined, index) => {
     const bestMatchMapped = await findBestMatch(parsedEmbeddingObjects[index], ownEmbeddings, ownCombined);
@@ -71,9 +93,32 @@ async function mapCategories(parsedObjects: parsedObjects[]) {
   return finalObject;
 }
 
+function getPathToFile() {
+  const args = minimist(process.argv.slice(2));
+  console.log(args);
+
+  const pathToFile = args['map-file-path'];
+  const baseTaxonomyPath = args['base-taxonomy-path'];
+  console.log(pathToFile, baseTaxonomyPath)
+
+  if (!pathToFile) {
+    throw new Error('Please provide path to taxonomy to map')
+  }
+
+  if (!baseTaxonomyPath) {
+    throw new Error('Please provide path to base taxonomy')
+  }
+  return {
+    pathToFile,
+    baseTaxonomyPath
+  }
+}
+
 
 (async () => {
-  const targetFile = 'UPC_ Discount School Supply - taxonomy.csv';
+  checkAndCreateFolders();
+  const { baseTaxonomyPath, pathToFile } = getPathToFile()
+  const targetFile = pathToFile;
   let parsedObjects = await parseCSVFile<parsedObjects>(targetFile);
 
   parsedObjects = parsedObjects.map(items => ({
@@ -83,7 +128,7 @@ async function mapCategories(parsedObjects: parsedObjects[]) {
     src_sc: extractLinkName(items.src_sc)
   }))
   
-  const mappedData = await mapCategories(parsedObjects);
+  const mappedData = await mapCategories(parsedObjects, baseTaxonomyPath);
 
   const finalObject = parsedObjects.map((data) => {
     const {src_pt, src_sc, src_cat} = data;
@@ -100,7 +145,7 @@ async function mapCategories(parsedObjects: parsedObjects[]) {
   })
 
   const csvWriter = createObjectCsvWriter({
-    path: targetFile.replace('.csv', '') + ' ai mapped.csv',
+    path: path.resolve(__dirname, 'mapped_taxonomies', targetFile.replace('.csv', '') + ' ai mapped.csv'),
     header: [
       { id: 'src_pt', title: 'src_pt' },
       { id: 'src_cat', title: 'src_cat' },

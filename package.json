@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/minimist": "^1.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
   },
@@ -17,6 +18,8 @@
     "@types/node": "^22.1.0",
     "csv-parser": "^3.0.0",
     "csv-writer": "^1.6.0",
+    "dotenv": "^16.4.5",
+    "minimist": "^1.2.8",
     "openai": "^4.54.0"
   }
 }
