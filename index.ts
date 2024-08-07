@@ -4,7 +4,6 @@ import { computeEmbeddings } from "./computeEmbeddings";
 import { createObjectCsvWriter } from 'csv-writer';
 import minimist from 'minimist';
 import path from "path";
-import fs from 'fs';
 
 
 function extractLinkName(input: string) {
@@ -13,22 +12,6 @@ function extractLinkName(input: string) {
   const match = input.match(hyperlinkPattern);
   
   return match ? match[1] : input;
-}
-
-
-
-// Function to check and create folders
-function checkAndCreateFolders() {
-  const foldersToCheck = ['mapped_taxonomies', 'base_taxonomy_embeddings', 'base_taxonomy'];
-  foldersToCheck.forEach(folder => {
-      const folderPath = path.join(__dirname, folder);
-      if (!fs.existsSync(folderPath)) {
-          fs.mkdirSync(folderPath);
-          console.log(`Created folder: ${folder}`);
-      } else {
-          console.log(`Folder already exists: ${folder}`);
-      }
-  });
 }
 
 interface parsedObjects {
@@ -97,7 +80,7 @@ function getPathToFile() {
   const args = minimist(process.argv.slice(2));
   console.log(args);
 
-  const pathToFile = args['map-file-path'];
+  const pathToFile = args['file-to-map-path'];
   const baseTaxonomyPath = args['base-taxonomy-path'];
   console.log(pathToFile, baseTaxonomyPath)
 
@@ -116,7 +99,6 @@ function getPathToFile() {
 
 
 (async () => {
-  checkAndCreateFolders();
   const { baseTaxonomyPath, pathToFile } = getPathToFile()
   const targetFile = pathToFile;
   let parsedObjects = await parseCSVFile<parsedObjects>(targetFile);
