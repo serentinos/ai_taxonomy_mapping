@@ -63,7 +63,7 @@ async function mapCategories(parsedObjects: parsedObjects[], baseTaxonomyPath: s
   const ownEmbeddings = ownEmbeddingsComplete.map(({ embeddings }) => embeddings);
   const ownCombined = ownEmbeddingsComplete.map(({ combinedText }) => combinedText);
   const finalObject: any = {};
-  const readyToParseObjects = parsedObjects.map(({src_pt, src_cat, src_sc}) => (`${src_pt || ' '}||${src_cat || ' '}||${src_sc || ' '}`).trim());
+  const readyToParseObjects = parsedObjects.map(({src_pt, src_cat, src_sc}) => (`${src_pt || ''}||${src_cat || ''}||${src_sc || ''}`).trim());
   const parsedEmbeddingObjects = await computeEmbeddings(readyToParseObjects);
 
   console.log('Calculating best matches...');
@@ -127,7 +127,11 @@ function getPathToFile() {
   })
 
   const csvWriter = createObjectCsvWriter({
-    path: path.resolve(__dirname, 'mapped_taxonomies', targetFile.replace('.csv', '') + ' ai mapped.csv'),
+    path: path.resolve(
+      __dirname,
+      'mapped_taxonomies',
+      targetFile.split('/').slice(-1)[0].replace('.csv', '') + ' ai mapped.csv'
+    ),
     header: [
       { id: 'src_pt', title: 'src_pt' },
       { id: 'src_cat', title: 'src_cat' },
